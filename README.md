@@ -1,11 +1,12 @@
-# [Título del trabajo]
+# TETRIS_GAME
 
-[Descripción breve del proyecto a realizar (2-3 frases).]
+Realizar el famoso videojueo tetris utilizando una placa de arduino.
 
 ## Integrantes del equipo
 
-[Nombres, apellidos, y usuario GitHub de los integrantes del equipo.]
+Santiago Carazo Pintado, Jose Bermejo Mengíbar, Pablo Balmaseda Gila.
 
 ## Objetivos del trabajo
 
-[Lista de los objetivos que se persiguen con el trabajo propuesto.]
+-Crear un juego de Tetris funcional utilizando una placa de Arduino y panel led.
+-Mostrar la puntuación del jugador y la puntuación máxima obtenida (highscore).
