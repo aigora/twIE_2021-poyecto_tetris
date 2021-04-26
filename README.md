@@ -1,6 +1,6 @@
 # ARCADE_GAME
 
-Realizar el famoso videojueo tetris utilizando una placa de arduino.
+Realizar el famoso videojuego atari breakout utilizando una placa de arduino.
 
 ## Integrantes del equipo
 
