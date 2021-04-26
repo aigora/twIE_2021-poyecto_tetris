@@ -1,4 +1,4 @@
-# TETRIS_GAME
+# ARCADE_GAME
 
 Realizar el famoso videojueo tetris utilizando una placa de arduino.
 
