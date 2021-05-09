@@ -11,13 +11,7 @@ int Y;
 int PULSADOR = 13;
 int SW;
 
-int columna = 3;
-
-int fila_actual = 1;
-int ultima_fila;
-
-int columna_actual = 3;
-int ultima_columna;
+int puntuacion=0;
 
 
 LiquidLine linea1(1, 0, "Elegir Jugador");
@@ -220,33 +214,48 @@ void fn_play(){
   menu.set_focusedLine(0);
 }
 
+
 void PosicionBarra() {
-  Y = analogRead(A1);           // lectura de valor de eje y
-
-
-  lc.setLed(0,0,columna-1,false);
-  lc.setLed(0,0,columna,false);
-  lc.setLed(0,0,columna+1,false);
-
-  if (Y >= 0 && Y < 200 && columna > 1){          // si Y esta en la zona izquierda
-    columna--;
-  } 
   
-  if (Y > 800 && Y <= 1023 && columna < 6){         // si Y esta en la zona derecha
-    columna++;
-  } 
+  static long ultimo_cambio = 0; 
+  long hora = millis();
   
-  lc.setLed(0,0,columna-1,true);
-  lc.setLed(0,0,columna,true);
-  lc.setLed(0,0,columna+1,true);
+  if (hora - ultimo_cambio > 200) {
+    ultimo_cambio = hora;
+  
+    Y = analogRead(A1);           // lectura de valor de eje y
+  
+    static int columna = 3;
 
-  delay (200);
+
+    lc.setLed(0,0,columna-1,false);
+    lc.setLed(0,0,columna,false);
+    lc.setLed(0,0,columna+1,false);
+
+   if (Y >= 0 && Y < 200 && columna > 1){         // si Y esta en la zona izquierda
+     columna--;
+   } 
+  
+   if (Y > 800 && Y <= 1023 && columna < 6){      // si Y esta en la zona derecha
+     columna++;
+   } 
+  
+   lc.setLed(0,0,columna-1,true);
+   lc.setLed(0,0,columna,true);
+   lc.setLed(0,0,columna+1,true);
+  }
 }
 
 void MovimientoBola(){
   
   static long ultimo_cambio = 0; 
   long hora = millis();
+  
+  static int fila_actual = 1;
+  static int ultima_fila;
+
+  static int columna_actual = 3;
+  static int ultima_columna;
   
   int direccion_aleatoria;
 
@@ -258,16 +267,21 @@ void MovimientoBola(){
     lc.setLed(0,ultima_fila,ultima_columna,false);
     lc.setLed(0,fila_actual,columna_actual,true); 
     
-    if (columna_actual != 0 && columna_actual != 7) {
-    lc.setLed(0,7,ultima_columna-1,false);
-    lc.setLed(0,7,ultima_columna,false);
-    lc.setLed(0,7,ultima_columna+1,false);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(puntuacion);
     
-    lc.setLed(0,7,columna_actual-1,true); 
-    lc.setLed(0,7,columna_actual,true); 
-    lc.setLed(0,7,columna_actual+1,true); 
+    if (columna_actual != 0 && columna_actual != 7) {  //Barra que sigue el movimiento de la bola
+      lc.setLed(0,7,ultima_columna-1,false);
+      lc.setLed(0,7,ultima_columna,false);
+      lc.setLed(0,7,ultima_columna+1,false);
+    
+      lc.setLed(0,7,columna_actual-1,true); 
+      lc.setLed(0,7,columna_actual,true); 
+      lc.setLed(0,7,columna_actual+1,true); 
     }
     
+    //Movimiento horizontal de la bola
     if ((fila_actual > ultima_fila || fila_actual == 1) && fila_actual != 6) {
       ultima_fila = fila_actual;
       fila_actual++;
@@ -278,9 +292,13 @@ void MovimientoBola(){
       fila_actual--;
     }
     
-    
+    //Movimiento vertical aleatorio de la bola
     if (ultima_fila == 1 || ultima_fila == 6) {
       direccion_aleatoria = random(-1,2);
+    }
+    
+    if (ultima_fila == 1) {
+      puntuacion++;
     }
     
     if (columna_actual == 0 || columna_actual == 7) {
