@@ -10,5 +10,5 @@ Realizar el famoso videojuego atari breakout utilizando una placa de arduino.
 
 ## Objetivos del trabajo
 
-* Crear el juego "atari brekout" funcional utilizando una placa de Arduino y panel led.
+* Crear el juego "pong" funcional utilizando una placa de Arduino y panel led.
 * Mostrar la puntuación del jugador y la puntuación máxima obtenida (highscore).
