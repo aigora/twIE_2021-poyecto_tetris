@@ -1,10 +1,16 @@
 #include <LiquidCrystal.h>
 #include <LiquidMenu.h>
 #include <LedControl.h>
+#include <SPI.h>
+#include <SD.h>
+
+#define SSpin 53    // Slave Select en pin digital 53
 
 LedControl lc = LedControl (8, 9, 10, 1);
 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+
+File archivo;     // objeto archivo del tipo File
 
 
 //Definición de las distintas pantallas y sus correspondientes lineas dentro del menu
@@ -21,12 +27,14 @@ LiquidMenu menu(lcd, pantalla1, pantalla2);
 
 
 void setup() {
-  pinMode(13, INPUT);
+  pinMode(13, INPUT); //Pulsador joystick
 
+  //Inicializacion matriz led
   lc.shutdown (0, false);
   lc.setIntensity (0, 5); // intensidad 0-15
   lc.clearDisplay (0);
 
+  //Inicializacion pantalla LCD
   lcd.begin(16, 2);
 
   randomSeed(analogRead(A15));
@@ -50,7 +58,38 @@ void setup() {
 
   menu.add_screen(pantalla2);
   menu.set_focusedLine(0);
-
+  
+  //Inicializacion tarjeta SD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.write("Iniciando");
+  lcd.setCursor(0, 1);
+  lcd.write("tarjeta SD");
+  delay(1500);
+  
+  if (!SD.begin(SSpin)) {
+  
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.write("Fallo en la");
+    lcd.setCursor(0, 1);
+    lcd.write("inicializacion!");
+    delay(1500);
+    
+    return;
+  }
+  
+  else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.write("Inicializacion");
+    lcd.setCursor(0, 1);
+    lcd.write("correcta");
+    delay(1500);
+  }
+  
+  //Pantalla inicial
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.write("Elegir jugador");
 
@@ -58,16 +97,16 @@ void setup() {
 
   while (SW == true) {
     SW = digitalRead(13);
-    delay(5);
   }
 
   lcd.clear();
+  delay(1000);
   menu.update();
 }
 
 
 void loop() {
-  int Y = analogRead(A1);      // lectura de valor de eje y
+  int Y = analogRead(A1);     // lectura de valor de eje y
   int SW = digitalRead(13);   // lectura pulsador
 
   static long ultimo_cambio = 0;
@@ -118,6 +157,8 @@ void fn_play() {
 
   int fila = 1;
   int pala;
+  
+  int puntuacion = 0;
 
   while (fila > -1) {
 
@@ -127,10 +168,19 @@ void fn_play() {
 
       pala = PosicionPala ();
       fila = MovimientoBola (pala);
+      
+      if (fila == 1)
+        puntuacion++;
+        
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.write("Puntuacion:");
+        lcd.setCursor(11, 0);
+        lcd.print(puntuacion);
     }
   }
 
-  GameOver ();
+  GameOver (puntuacion);
 }
 
 int PosicionPala () {
@@ -165,14 +215,12 @@ int MovimientoBola (int pala) {
   static int direccion_vertical = 0;  //Valores aleatorios entre -1, 0 y 1
   static int direccion_horizontal = -1; //Valores alternos de -1 y 1
 
-  static int puntuacion = -1;
 
   if (fila == -1) {
     fila = 1;
     columna = 3;
     direccion_horizontal = 1;
     direccion_vertical = 0;
-    puntuacion = -1;
   }
 
   lc.setLed(0, fila, columna, false);
@@ -192,7 +240,7 @@ int MovimientoBola (int pala) {
       direccion_vertical = 0;
     }
 
-    if (columna == pala + 1 || columna == pala - 1) { //Rebote diagonal si la bola da en los extremos de la pala
+    else if (columna == pala + 1 || columna == pala - 1) { //Rebote diagonal si la bola da en los extremos de la pala
       direccion_horizontal = 1;
 
       if (direccion_vertical == 0) {
@@ -206,8 +254,8 @@ int MovimientoBola (int pala) {
 
 
     //Rebote con el borde de la pala
-    if ((columna == pala + 2 && direccion_vertical == -1) ||
-        (columna == pala - 2 && direccion_vertical == 1)) {
+    else if ((columna == pala + 2 && direccion_vertical == -1) ||
+             (columna == pala - 2 && direccion_vertical == 1)) {
       direccion_vertical = -direccion_vertical;
       direccion_horizontal = 1;
 
@@ -215,15 +263,14 @@ int MovimientoBola (int pala) {
         direccion_vertical = -direccion_vertical;
       }
     }
-
-    puntuacion++;
   }
 
   if (fila == 6) { //Rebote de la bola con la pala oponente
     direccion_horizontal = -1;
     direccion_vertical = random(-1, 2);
 
-    if ((columna == 0 && direccion_vertical == -1) || (columna == 7 && direccion_vertical == 1)) { //Caso particular rebote en esquinas
+    if ((columna == 0 && direccion_vertical == -1) || 
+        (columna == 7 && direccion_vertical == 1)) { //Caso particular rebote en esquinas
       direccion_vertical = -direccion_vertical;
     }
   }
@@ -239,28 +286,50 @@ int MovimientoBola (int pala) {
   lc.setLed(0, 7, columna, true);
   lc.setLed(0, 7, columna + 1, true);
 
-
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.write("Puntuacion:");
-  lcd.setCursor(11, 0);
-  lcd.print(puntuacion);
-
-
   return (fila);
 }
 
-void GameOver () {
-
-  lc.clearDisplay(0);
+void GameOver (int puntuacion) {
 
   int i;
   for (i = 7; i >= 0; i--) {
     lc.setColumn(0, i, B11111111);
     delay(100);
   }
+  
 
-  lc.clearDisplay (0);
+  archivo = SD.open("puntuacion.txt", FILE_WRITE);
+
+  if (archivo) {
+    archivo.println(puntuacion);
+    
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.write("Guardando puntuacion");
+    delay(1000);
+    
+    archivo.close();
+    
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.write("Completado");
+    delay(1000);
+  } 
+  
+  else {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.write("Error guardado");
+    lcd.setCursor(0, 1);
+    lcd.write("puntuacion");
+    delay(1000);
+  }
+  
+  
+    for (i = 7; i >= 0; i--) {
+    lc.setColumn(0, i, B00000000);
+    delay(100);
+  }
   menu.change_screen(1);
   menu.set_focusedLine(0);
 }
