@@ -1,12 +1,12 @@
 # ARCADE_GAME
 
-Realizar el famoso videojuego atari breakout utilizando una placa de arduino.
+Realizar el famoso videojuego pong utilizando una placa de arduino.
 
 ## Integrantes del equipo
 
 * Santiago Carazo Pintado 
 * Jose Bermejo Mengíbar
-* Pablo Balmaseda Gila.
+* Pablo Balmaseda Gila
 
 ## Objetivos del trabajo
 
